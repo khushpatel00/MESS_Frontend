@@ -1,0 +1,27 @@
+@import "tailwindcss";
+
+.linebreak::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    transform: translateY(-100%);
+    background: #000;
+    width: 100px;
+    margin-inline: 30px;
+    border-radius: calc(Infinity * 1px);
+    height: 2px;
+}
+
+.linebreak::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: 0;
+    transform: translateY(-100%);
+    background: #000;
+    width: 25px;
+    margin-inline: 30px;
+    border-radius: calc(Infinity * 1px);
+    height: 2px;
+}

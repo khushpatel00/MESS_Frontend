@@ -11,7 +11,7 @@ const Grotesque = Bricolage_Grotesque({
 
 
 export default function page() {
-    let tl: any;
+    let tl: any; // gsap timeline
     const inputRef = useRef<HTMLInputElement | null>(null);
     const [isConnected, setIsConnected] = useState<Boolean>(false);
     const [MessHistory, setMessHistory] = useState<Array<Message>>([])
@@ -20,17 +20,30 @@ export default function page() {
         e.preventDefault();
         // console.log(input);
         socket.emit('send-message', input);
+        let data: Message = {
+            message: input.message, // raw sanitized            
+            displayName: '', // just for now
+            uid: '', // will be provided by socketid, will be added later, 
+            IsSent: true,
+        }
+        setMessHistory(prev => [...prev, data])
+        // console.log(MessHistory, data)
+        setInput((prev) => {
+            return {
+                ...prev,
+                message: '',
+            }
+        });
     }
 
     function onConnect() {
         setIsConnected(true);
     }
-
     function onDisconnect() {
         setIsConnected(false);
     }
     function renderNewMessage(data: any) {
-        console.log(data);
+        console.log('render data: ', data);
         setMessHistory(prev => [...prev, data])
     }
     function userLeft(data: any) {
@@ -40,38 +53,20 @@ export default function page() {
         console.log('user joined: ', data)
     }
 
-    // function onFooEvent(value) {
-    //     setFooEvents(previous => [...previous, value]);
-    // }
-
-
-    useEffect(() => {
-
-
-        socket.on('connect', onConnect);
-        socket.on('disconnect', onDisconnect);
-        socket.on('recieve-new-message', renderNewMessage);
-        socket.on('user-left', userLeft);
-        socket.on('user-connected', userJoined);
-        return  ()=> {
-            socket.off('user-left');
-            socket.off('user-connected');
-            socket.off('recieve-new-message');
-        }
-    }, [])
-    // socket.on('foo', onFooEvent);
 
 
     interface userInput {
         message: string | undefined | number | readonly string[],
         uid: null | String,
         displayName: String,
+        IsSent: Boolean,
     }
 
     interface Message {
-        message: string,
+        message: string | number | readonly string[],
         uid: string | null,
         displayName: string,
+        IsSent: Boolean,
     }
 
 
@@ -79,6 +74,7 @@ export default function page() {
         message: '',
         uid: null, // null = anonymous
         displayName: '',
+        IsSent: false,
     });
 
 
@@ -131,19 +127,38 @@ export default function page() {
         });
     }
 
+
+
+    useEffect(() => {
+
+
+        socket.on('connect', onConnect);
+        socket.on('disconnect', onDisconnect);
+        socket.on('recieve-new-message', renderNewMessage);
+        socket.on('user-left', userLeft);
+        socket.on('user-connected', userJoined);
+        return () => {
+            socket.off('user-left');
+            socket.off('user-connected');
+            socket.off('recieve-new-message');
+        }
+    }, [])
+
     return (
         <>
-            <div className='absolute top-0 right-0 z-60 text-xl capitalize '>
+            <div className='absolute top-0 right-0 z-60 text-xl capitalize pointer-events-none'>
                 <div className={` ${Grotesque.className} ${isConnected ? 'bg-emerald-400' : 'bg-red-300'} ${isConnected ? 'text-emerald-800' : 'text-red-800'} px-3 ps-5 py-1 font-semibold m-3 mt-20 rounded-full flex flex-row flex-wrap items-center justify-evenly gap-1.5`}><div className={`${isConnected ? 'bg-emerald-700' : 'bg-red-700'} w-2 h-2 rounded-full`}>  </div>{isConnected ? 'Connected' : 'Disconnected'}</div>
             </div>
 
-            {MessHistory.map((MESS, KEY) => {
-                return (
-                    <div key={KEY} className='min-w-16 w-fit max-w-1/2'>
-                        <MessageBlock UserID={MESS.uid} Message={MESS.message}></MessageBlock>
-                    </div>
-                )
-            })}
+            <div className='mx-auto max-w-2xl mt-24'>
+                {MessHistory.map((MESS, KEY) => {
+                    return (
+                        <div key={KEY}>
+                            <MessageBlock UserID={MESS.uid} Message={MESS.message} IsSent={MESS.IsSent} ></MessageBlock>
+                        </div>
+                    )
+                })}
+            </div>
 
             <form onSubmit={handleMess} className={'fixed bottom-0 left-1/2 -translate-x-1/2 flex flex-row flex-wrap items-center justify-center mb-5'}>
                 <input

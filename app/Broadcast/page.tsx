@@ -1,8 +1,9 @@
 'use client'
 import { socket } from '../socket'
 import gsap from "gsap";
-import { ChangeEvent, useRef, useState } from "react";
+import { ChangeEvent, useEffect, useRef, useState } from "react";
 import { Bricolage_Grotesque } from 'next/font/google'
+import MessageBlock from '../Components/MessageBlock';
 
 const Grotesque = Bricolage_Grotesque({
     preload: true,
@@ -12,10 +13,13 @@ const Grotesque = Bricolage_Grotesque({
 export default function page() {
     let tl: any;
     const inputRef = useRef<HTMLInputElement | null>(null);
-    const [isConnected, setIsConnected] = useState<Boolean>(socket.connected || false);
+    const [isConnected, setIsConnected] = useState<Boolean>(false);
+    const [MessHistory, setMessHistory] = useState<Array<Message>>([])
     // const [fooEvents, setFooEvents] = useState([]);
     const handleMess = (e: any) => {
         e.preventDefault();
+        // console.log(input);
+        socket.emit('send-message', input);
     }
 
     function onConnect() {
@@ -25,12 +29,36 @@ export default function page() {
     function onDisconnect() {
         setIsConnected(false);
     }
+    function renderNewMessage(data: any) {
+        console.log(data);
+        setMessHistory(prev => [...prev, data])
+    }
+    function userLeft(data: any) {
+        console.log('user left: ', data)
+    }
+    function userJoined(data: any) {
+        console.log('user joined: ', data)
+    }
 
     // function onFooEvent(value) {
     //     setFooEvents(previous => [...previous, value]);
     // }
-    socket.on('connect', onConnect);
-    socket.on('disconnect', onDisconnect);
+
+
+    useEffect(() => {
+
+
+        socket.on('connect', onConnect);
+        socket.on('disconnect', onDisconnect);
+        socket.on('recieve-new-message', renderNewMessage);
+        socket.on('user-left', userLeft);
+        socket.on('user-connected', userJoined);
+        return  ()=> {
+            socket.off('user-left');
+            socket.off('user-connected');
+            socket.off('recieve-new-message');
+        }
+    }, [])
     // socket.on('foo', onFooEvent);
 
 
@@ -38,6 +66,12 @@ export default function page() {
         message: string | undefined | number | readonly string[],
         uid: null | String,
         displayName: String,
+    }
+
+    interface Message {
+        message: string,
+        uid: string | null,
+        displayName: string,
     }
 
 
@@ -102,7 +136,16 @@ export default function page() {
             <div className='absolute top-0 right-0 z-60 text-xl capitalize '>
                 <div className={` ${Grotesque.className} ${isConnected ? 'bg-emerald-400' : 'bg-red-300'} ${isConnected ? 'text-emerald-800' : 'text-red-800'} px-3 ps-5 py-1 font-semibold m-3 mt-20 rounded-full flex flex-row flex-wrap items-center justify-evenly gap-1.5`}><div className={`${isConnected ? 'bg-emerald-700' : 'bg-red-700'} w-2 h-2 rounded-full`}>  </div>{isConnected ? 'Connected' : 'Disconnected'}</div>
             </div>
-            <form onSubmit={handleMess} className={'absolute bottom-0 left-1/2 -translate-x-1/2 flex flex-row flex-wrap items-center justify-center mb-5'}>
+
+            {MessHistory.map((MESS, KEY) => {
+                return (
+                    <div key={KEY} className='min-w-16 w-fit max-w-1/2'>
+                        <MessageBlock UserID={MESS.uid} Message={MESS.message}></MessageBlock>
+                    </div>
+                )
+            })}
+
+            <form onSubmit={handleMess} className={'fixed bottom-0 left-1/2 -translate-x-1/2 flex flex-row flex-wrap items-center justify-center mb-5'}>
                 <input
                     ref={inputRef}
                     onFocus={focusInput}

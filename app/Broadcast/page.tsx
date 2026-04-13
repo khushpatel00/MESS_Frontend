@@ -19,21 +19,24 @@ export default function page() {
     const handleMess = (e: any) => {
         e.preventDefault();
         // console.log(input);
-        socket.emit('send-message', input);
-        let data: Message = {
-            message: input.message, // raw sanitized            
-            displayName: '', // just for now
-            uid: '', // will be provided by socketid, will be added later, 
-            IsSent: true,
-        }
-        setMessHistory(prev => [...prev, data])
-        // console.log(MessHistory, data)
-        setInput((prev) => {
-            return {
-                ...prev,
-                message: '',
+        if (input.message) {
+
+            socket.emit('send-message', input);
+            let data: Message = {
+                message: input.message.toString(), // raw sanitized            
+                displayName: '', // just for now
+                uid: '', // will be provided by socketid, will be added later, 
+                IsSent: true,
             }
-        });
+            setMessHistory(prev => [...prev, data])
+            // console.log(MessHistory, data)
+            setInput((prev) => {
+                return {
+                    ...prev,
+                    message: '',
+                }
+            });
+        }
     }
 
     function onConnect() {

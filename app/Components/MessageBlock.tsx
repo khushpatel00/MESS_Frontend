@@ -8,7 +8,7 @@ interface params {
 export default function MessageBlock({ UserID = null, Message, IsSent = false }: params) {
 
     return (
-        <div className={` ${IsSent && 'ms-auto'} min-w-16 w-fit max-w-1/2 relative mt-6`}>
+        <div className={` ${IsSent ? 'ms-auto enteringanimationonsent' : 'me-auto enteringanimation'} min-w-16 w-fit max-w-1/2 relative mt-6 `}>
             {!IsSent &&
                 <div className={'absolute top-0 left-0 ps-2.5 -translate-y-3/4 text-sm text-zinc-600'}>anonymous</div>
             }

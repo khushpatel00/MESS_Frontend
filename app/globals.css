@@ -25,3 +25,36 @@
     border-radius: calc(Infinity * 1px);
     height: 2px;
 }
+
+.enteringanimation{
+    animation-name: enteringanimation;
+    animation-duration: 0.25s;
+}
+.enteringanimationonsent{
+    animation-name: enteringanimationonsent;
+    animation-duration: 0.25s;
+}
+.enteringanimation{
+    animation-name: enteringanimation;
+    animation-duration: 0.25s;
+}
+@keyframes enteringanimation {
+    0%{
+        transform: translateY(-100%);
+        opacity: 0
+    }
+    100%{
+        transform: translateY(0%);
+        opacity: 1
+    }
+}
+@keyframes enteringanimationonsent {
+    0%{
+        transform: translateY(100%);
+        opacity: 0
+    }
+    100%{
+        transform: translateY(0%);
+        opacity: 1
+    }
+}

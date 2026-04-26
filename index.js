@@ -1,16 +1,27 @@
+require('dotenv').config()
 const express = require('express');
+const database = require('./Config/databaseconfig');
 const server = express();
 const socketio = require('socket.io');
 const socketServer = require('http').createServer(server);
 const io = socketio(socketServer, {
     cors: {
-        origin: "*",
+        origin: "*", // for depelopment stages only (for localhost, and github.io), will be changed to frontend url, in future
         methods: ["GET", "POST"]
     }
 })
 
+database(); // establishing database connection
+
+server.use(express.urlencoded());
+server.use(express.json());
+server.use('/', require('./Routes/index.routes'))
+server.use('/auth', require('./Routes/auth.routes'))
+
+// keeping the socket connection on root server file for reducing the jumping in files
+// and increasing efficiency on a smaller scale 
 io.on('connection', (socket) => {
-    console.log('connected with: ', socket.id)
+    console.log('connected with: ', socket.id, socket.handshake.auth);
     socket.broadcast.emit('user-connected', { id: socket.id });
     socket.on('send-devinfo', (data) => {
         console.log(data);

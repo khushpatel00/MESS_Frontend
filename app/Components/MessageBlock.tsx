@@ -2,7 +2,7 @@
 
 interface params {
     UserID: String | null,
-    Message: String,
+    Message: string | number | readonly string[],
     IsSent: Boolean | null,
 }
 export default function MessageBlock({ UserID = null, Message, IsSent = false }: params) {

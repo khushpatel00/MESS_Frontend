@@ -11,53 +11,24 @@ const Grotesque = Bricolage_Grotesque({
 
 
 export default function page() {
+
+    // VARIABLES / STATES
     let tl: any; // gsap timeline
     const inputRef = useRef<HTMLInputElement | null>(null);
     const [isConnected, setIsConnected] = useState<Boolean>(false);
     const [MessHistory, setMessHistory] = useState<Array<Message>>([])
-    // const [fooEvents, setFooEvents] = useState([]);
-    const handleMess = (e: any) => {
-        e.preventDefault();
-        // console.log(input);
-        if (input.message) {
-
-            socket.emit('send-message', input);
-            let data: Message = {
-                message: input.message.toString(), // raw sanitized            
-                displayName: '', // just for now
-                uid: '', // will be provided by socketid, will be added later, 
-                IsSent: true,
-            }
-            setMessHistory(prev => [...prev, data])
-            // console.log(MessHistory, data)
-            setInput((prev) => {
-                return {
-                    ...prev,
-                    message: '',
-                }
-            });
-        }
-    }
-
-    function onConnect() {
-        setIsConnected(true);
-    }
-    function onDisconnect() {
-        setIsConnected(false);
-    }
-    function renderNewMessage(data: any) {
-        console.log('render data: ', data);
-        setMessHistory(prev => [...prev, data])
-    }
-    function userLeft(data: any) {
-        console.log('user left: ', data)
-    }
-    function userJoined(data: any) {
-        console.log('user joined: ', data)
-    }
+    const [input, setInput] = useState<userInput>({
+        message: '',
+        uid: null, // null = anonymous
+        displayName: '',
+        IsSent: false,
+    });
 
 
 
+
+
+    // INTERFACES (TYPE)
     interface userInput {
         message: string | undefined | number | readonly string[],
         uid: null | String,
@@ -73,14 +44,9 @@ export default function page() {
     }
 
 
-    const [input, setInput] = useState<userInput>({
-        message: '',
-        uid: null, // null = anonymous
-        displayName: '',
-        IsSent: false,
-    });
 
 
+    // GSAP ANIMATIONS
     const focusInput = () => {
         if (tl) tl.kill();
         tl = gsap.timeline();
@@ -121,6 +87,8 @@ export default function page() {
             autoRound: false,
         }, 'sync')
     }
+
+    // EVENT HANDLERS
     const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
         setInput((prev) => {
             return {
@@ -130,11 +98,50 @@ export default function page() {
         });
     }
 
+    const handleMess = (e: any) => {
+        e.preventDefault();
+        // console.log(input);
+        if (input.message) {
+
+            socket.emit('send-message', input);
+            let data: Message = {
+                message: input.message.toString(), // raw sanitized            
+                displayName: '', // just for now
+                uid: '', // will be provided by socketid, will be added later, 
+                IsSent: true,
+            }
+            setMessHistory(prev => [...prev, data])
+            // console.log(MessHistory, data)
+            setInput((prev) => {
+                return {
+                    ...prev,
+                    message: '',
+                }
+            });
+        }
+    }
 
 
+    // SOCKET HANDLERS
+    function onConnect() {
+        setIsConnected(true);
+    }
+    function onDisconnect() {
+        setIsConnected(false);
+    }
+    function renderNewMessage(data: any) {
+        console.log('render data: ', data);
+        setMessHistory(prev => [...prev, data])
+    }
+    function userLeft(data: any) {
+        console.log('user left: ', data)
+    }
+    function userJoined(data: any) {
+        console.log('user joined: ', data)
+    }
+
+    // SOCKET LISTENERS
     useEffect(() => {
-
-
         socket.on('connect', onConnect);
         socket.on('disconnect', onDisconnect);
         socket.on('recieve-new-message', renderNewMessage);
@@ -146,6 +153,7 @@ export default function page() {
             socket.off('recieve-new-message');
         }
     }, [])
+
 
     return (
         <>

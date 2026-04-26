@@ -1,5 +1,6 @@
 const userModel = require('../Model/user.model')
 const mongoose = require('mongoose')
+const jwt = require('jsonwebtoken')
 const bcrypt = require('bcrypt')
 exports.addUser = async (req, res) => {
     try {
@@ -32,15 +33,32 @@ exports.addUser = async (req, res) => {
         return res.status(500).json('Internal Server Error')
     }
 }
-// exports.login = (req, res) => {
-//     try {
+exports.login = async (req, res) => {
+    try {
 
-//         let { username, password } = req.body;
-//         if (username && password) {
-            
-//         } else return res.status(401).json('Invalid Credentials');
-//     } catch (error) {
-//         console.log(error);
-//         return res.status(500).json('Internal Server Error');
-//     }
-// }
+        let { username, email, password } = req.body;
+        if (username && password) {
+            // let user = await userModel.findOne({ username: username }).select('-createdAt -updatedAt -__v -_id -email')
+            let user = await userModel.findOne({ username: username }).select('username password _id')
+            if (!user) return res.status(401).json('Invalid Credentials');
+            let isValid = await bcrypt.compare(user?.password, password);
+            if (!isValid) return res.status(401).json('Invalid Credentials');
+            if (isValid === true) {
+                let jwttoken = jwt.sign({ username, _id })
+                return res.json(jwttoken);
+            }
+        } else if (email && password) {
+            let user = await userModel.findOne({ email: email }).select('email password username _id')
+            if (!user) return res.status(401).json('Invalid Credentials');
+            let isValid = await bcrypt.compare(user?.password, password);
+            if (!isValid) return res.status(401).json('Invalid Credentials');
+            if (isValid === true) {
+                let jwttoken = jwt.sign({ username, _id })
+                return res.json(jwttoken);
+            }
+        } else return res.status(401).json('Invalid Credentials');
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json('Internal Server Error');
+    }
+}

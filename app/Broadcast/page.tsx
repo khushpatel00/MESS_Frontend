@@ -171,17 +171,17 @@ export default function page() {
                 })}
             </div>
 
-            <form onSubmit={handleMess} className={'fixed bottom-0 left-1/2 -translate-x-1/2 flex flex-row flex-wrap items-center justify-center mb-5'}>
+            <form onSubmit={handleMess} className={'fixed bottom-0 md:left-1/2 md:-translate-x-1/2 left-0 mx-auto w-full flex flex-row flex-wrap items-center justify-center mb-5'}>
                 <input
                     ref={inputRef}
                     onFocus={focusInput}
                     onBlur={blurInput}
                     type="text"
-                    className="bg-zinc-200 rounded-full md:max-w-auto max-w-[50vw] text-xl px-5 py-3"
+                    className="bg-zinc-200 rounded-full md:max-w-auto max-w-screen text-xl px-5 py-3"
                     value={input.message}
                     onChange={handleChange}
                 />
-                <div className="text-black max-w-12 ms-2 mx-auto my-auto flex flex-wrap justify-center items-center p-3 bg-zinc-100 rounded-full sendicon" >
+                <div className="text-black max-w-12 m-0 ms-2 my-auto flex flex-wrap justify-center items-center p-3 bg-zinc-100 rounded-full sendicon" >
                     <svg width="100%" height="100%" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M7 17L17 7M17 7H7M17 7V17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>

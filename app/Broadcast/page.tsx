@@ -31,16 +31,23 @@ export default function page() {
     // INTERFACES (TYPE)
     interface userInput {
         message: string | undefined | number | readonly string[],
-        uid: null | String,
-        displayName: String,
-        IsSent: Boolean,
+        uid: null | string,
+        displayName: string,
+        IsSent: boolean,
+    }
+
+    interface Connection {
+        id?: string,
+        ref?: 'left' | 'joined',
+        platform?: string,
     }
 
     interface Message {
         message: string | number | readonly string[],
         uid: string | null,
         displayName: string,
-        IsSent: Boolean,
+        IsSent: boolean,
+        connection: Connection | null
     }
 
 
@@ -109,6 +116,7 @@ export default function page() {
                 displayName: '', // just for now
                 uid: '', // will be provided by socketid, will be added later, 
                 IsSent: true,
+                connection: null, // just for a fallback, not used on server
             }
             setMessHistory(prev => [...prev, data])
             // console.log(MessHistory, data)
@@ -135,9 +143,28 @@ export default function page() {
     }
     function userLeft(data: any) {
         console.log('user left: ', data)
+        setMessHistory(prev =>
+            [...prev, {
+                message: '',
+                uid: data?.id,
+                displayName: '',
+                IsSent: false,
+                connection: {...data, ref: 'left'},
+            }]
+        )
     }
     function userJoined(data: any) {
         console.log('user joined: ', data)
+        setMessHistory(prev =>
+            [...prev, {
+                message: '',
+                uid: data?.id,
+                displayName: '',
+                IsSent: false,
+                connection: {...data, ref: 'joined'},
+            }]
+        )
+
     }
 
     // SOCKET LISTENERS
@@ -165,7 +192,9 @@ export default function page() {
                 {MessHistory.map((MESS, KEY) => {
                     return (
                         <div key={KEY}>
-                            <MessageBlock UserID={MESS.uid} Message={MESS.message} IsSent={MESS.IsSent} ></MessageBlock>
+                            {MESS.connection ? <div className='text-zinc-800 text-center mx-auto'>User <span className='capitalize'>{MESS.connection?.ref}</span> with id: <span className='italic text-zinc-500 font-light'>{MESS.connection?.id}</span> from <span className='text-zinc-500 font-light'>{MESS?.connection?.platform || 'unknown device'}</span></div> :
+                                <MessageBlock UserID={MESS.uid} Message={MESS.message} IsSent={MESS.IsSent} ></MessageBlock> 
+                            }
                         </div>
                     )
                 })}

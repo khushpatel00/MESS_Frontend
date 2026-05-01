@@ -141,6 +141,18 @@ export default function page() {
         console.log('render data: ', data);
         setMessHistory(prev => [...prev, data])
     }
+
+    // the same thing is already done at server, doing here just for a fallback protection
+    function formatPlatform(platform: any) {
+        if (!platform) return 'unknown device';
+        if (typeof platform === 'string') return platform;
+        if (typeof platform === 'object') {
+            const label = `${platform.platform ?? ''}${platform.platform && platform.model ? ' ' : ''}${platform.model ?? ''}`.trim();
+            return label || JSON.stringify(platform);
+        }
+        return String(platform);
+    }
+
     function userLeft(data: any) {
         console.log('user left: ', data)
         setMessHistory(prev =>
@@ -149,7 +161,7 @@ export default function page() {
                 uid: data?.id,
                 displayName: '',
                 IsSent: false,
-                connection: {...data, ref: 'left'},
+                connection: {...data, ref: 'left', platform: formatPlatform(data?.platform)},
             }]
         )
     }
@@ -161,7 +173,7 @@ export default function page() {
                 uid: data?.id,
                 displayName: '',
                 IsSent: false,
-                connection: {...data, ref: 'joined'},
+                connection: {...data, ref: 'joined', platform: formatPlatform(data?.platform)},
             }]
         )
 
@@ -192,7 +204,7 @@ export default function page() {
                 {MessHistory.map((MESS, KEY) => {
                     return (
                         <div key={KEY}>
-                            {MESS.connection ? <div className='text-zinc-800 text-center mx-auto'>User <span className='capitalize'>{MESS.connection?.ref}</span> with id: <span className='italic text-zinc-500 font-light'>{MESS.connection?.id}</span> from <span className='text-zinc-500 font-light'>{MESS?.connection?.platform || 'unknown device'}</span></div> :
+                            {MESS.connection ? <div className='text-zinc-800 text-center mx-auto'>User <span className='capitalize'>{MESS.connection?.ref}</span> with id: <span className='italic text-zinc-500 font-light'>{MESS.connection?.id}</span> from <span className='text-zinc-500 font-light'>{formatPlatform(MESS.connection?.platform)}</span></div> :
                                 <MessageBlock UserID={MESS.uid} Message={MESS.message} IsSent={MESS.IsSent} ></MessageBlock> 
                             }
                         </div>

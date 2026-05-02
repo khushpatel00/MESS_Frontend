@@ -12,6 +12,10 @@
     border-radius: calc(Infinity * 1px);
     height: 2px;
 }
+::-webkit-scrollbar {
+  height: 0px;
+  width: 0px;
+}
 
 .linebreak::after {
     content: '';

@@ -1,25 +1,37 @@
 
 'use client';
-
 import { useState } from 'react';
 import { Bricolage_Grotesque } from 'next/font/google';
+import axios from 'axios';
 
 const Grotesque = Bricolage_Grotesque({
     preload: true
 });
 
 export default function LoginPage() {
-    const [isLogin, setIsLogin] = useState(true);
-    const [loginData, setLoginData] = useState({ username: '', password: '' });
-    const [registerData, setRegisterData] = useState({
+    const [isLogin, setIsLogin] = useState<boolean>(true);
+    const [isRegistered, setIsRegistered] = useState<boolean>(false)
+    interface loginDataInterface {
+        username: string | readonly string[],
+        password: string | readonly string[],
+    }
+    interface registerDataInterface {
+        username: string | readonly string[],
+        email: string | readonly string[],
+        password: string | readonly string[],
+        confirmpassword: string | readonly string[],
+        displayname: string | readonly string[] | undefined,
+    }
+    const [loginData, setLoginData] = useState<loginDataInterface>({ username: '', password: '' });
+    const [registerData, setRegisterData] = useState<registerDataInterface>({
         email: '',
         username: '',
         displayname: '',
         password: '',
         confirmpassword: ''
     });
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
+    const [loading, setLoading] = useState<boolean>(false);
+    const [error, setError] = useState<String>('');
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
     const handleLoginChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -41,25 +53,41 @@ export default function LoginPage() {
             if (loginData.username.length >= 6) {
                 if (loginData.password.length >= 8) {
                     setLoading(true)
-                } else setError('Password must be 8 characters or more')
-            } else setError('Username must be 6 characters or more')
+                } else {
+                    setError('Password must be 8 characters or more')
+                    return;
+                }
+            } else {
+                setError('Username must be 6 characters or more')
+                return;
+            }
+
+            let response = await axios.post('/api/auth/login', {
+                username: loginData.username,
+                password: loginData.password,
+            })
+
+
+
+
         } catch (err) {
+            console.log(err)
             setError('Login failed. Please try again.');
         } finally {
-            // setLoading(false);
+            setLoading(false);
         }
     };
 
     const handleRegisterSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        // setLoading(true);
+        setLoading(true);
         try {
 
             if (!registerData.email) {
                 setError('Please enter a valid Email')
                 return;
             }
-            if (emailRegex.test(registerData.email) !== true) {
+            if (emailRegex.test(String(registerData.email)) !== true) {
                 setError('Please enter a valid Email')
                 return;
             }
@@ -77,15 +105,24 @@ export default function LoginPage() {
             }
             setError('')
 
-            if (registerData.displayname == '') registerData.displayname = registerData.username;
+            // if (registerData.displayname == '') registerData.displayname = registerData.username;
 
+            let response = await axios.post('/api/auth/register', {
+                username: registerData.username,
+                email: registerData.email,
+                password: registerData.password,
+                displayName: registerData.displayname || registerData.username,
+            })
 
+            if(response.status === 201 || response.status === 200) {
+                setIsRegistered(true);
+            }
 
 
         } catch (err) {
             setError('Registration failed. Please try again.');
         } finally {
-            // setLoading(false);
+            setLoading(false);
         }
     };
 
@@ -267,10 +304,10 @@ export default function LoginPage() {
                             {/* Submit Button */}
                             <button
                                 type="submit"
-                                disabled={loading}
-                                className="w-full py-3 px-4 bg-black text-white font-medium rounded-lg hover:bg-gray-900 disabled:bg-gray-400 transition-colors duration-200 mt-8 text-base"
+                                disabled={loading}                                
+                                className={`w-full py-3 px-4 bg-black text-white font-medium rounded-lg hover:bg-gray-900 disabled:bg-gray-400 transition-colors duration-200 mt-8 text-base ${isRegistered && 'bg-emerald-300 !text-black'}`}
                             >
-                                {loading ? 'Creating account...' : 'Register'}
+                                {loading ? 'Creating account...' : isRegistered ? 'Account Created Successfully' : 'Register'}
                             </button>
                         </div>
                     </form>
